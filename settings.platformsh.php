@@ -3,26 +3,30 @@
 if (isset($_ENV['PLATFORM_RELATIONSHIPS'])) {
   $relationships = json_decode(base64_decode($_ENV['PLATFORM_RELATIONSHIPS']), TRUE);
 
-  if (empty($databases['default']['default']) && !empty($relationships['database'])) {
-    foreach ($relationships['database'] as $endpoint) {
-      $database = array(
-        'driver' => $endpoint['scheme'],
-        'database' => $endpoint['path'],
-        'username' => $endpoint['username'],
-        'password' => $endpoint['password'],
-        'host' => $endpoint['host'],
-        'port' => $endpoint['port'],
-      );
-
-      if (!empty($endpoint['query']['compression'])) {
-        $database['pdo'][PDO::MYSQL_ATTR_COMPRESS] = TRUE;
+  if (empty($databases['default']['default']) && !empty($relationships)) {    
+    foreach ($relationships as $key => $relationship) {
+      if (empty($relationship['scheme']) || ($relationship['scheme'] != 'mysql' || $relationship['scheme'] != 'postgresql')) {
+        continue;
       }
-
-      if (!empty($endpoint['query']['is_master'])) {
-        $databases['default']['default'] = $database;
-      }
-      else {
-        $databases['default']['slave'][] = $database;
+      $drupal_key = ($key === 'database') ? 'default' : $key;
+      foreach ($relationship as $instance) {
+        $database = [
+          'driver' => $instance['scheme'],
+          'database' => $instance['path'],
+          'username' => $instance['username'],
+          'password' => $instance['password'],
+          'host' => $instance['host'],
+          'port' => $instance['port'],
+        ];
+        if (!empty($instance['query']['compression'])) {
+          $database['pdo'][PDO::MYSQL_ATTR_COMPRESS] = TRUE;
+        }
+        if (!empty($instance['query']['is_master'])) {
+          $databases[$drupal_key]['default'] = $database;
+        }
+        else {
+          $databases[$drupal_key]['slave'][] = $database;
+        }
       }
     }
   }
