@@ -30,6 +30,7 @@ if (isset($_ENV['PLATFORM_RELATIONSHIPS'])) {
     }
   }
 }
+
 // Configure private and temporary file paths.
 if (isset($_ENV['PLATFORM_APP_DIR'])) {
   if (!isset($conf['file_private_path'])) {
@@ -39,9 +40,11 @@ if (isset($_ENV['PLATFORM_APP_DIR'])) {
     $conf['file_temporary_path'] = $_ENV['PLATFORM_APP_DIR'] . '/tmp';
   }
 }
+
 // Import variables prefixed with 'drupal:' into $conf.
 if (isset($_ENV['PLATFORM_VARIABLES'])) {
   $variables = json_decode(base64_decode($_ENV['PLATFORM_VARIABLES']), TRUE);
+
   $prefix_len = strlen('drupal:');
   $drupal_globals = array('cookie_domain', 'installed_profile', 'drupal_hash_salt', 'base_url');
   foreach ($variables as $name => $value) {
@@ -56,6 +59,7 @@ if (isset($_ENV['PLATFORM_VARIABLES'])) {
     }
   }
 }
+
 // Set a default Drupal hash salt, based on a project-specific entropy value.
 if (isset($_ENV['PLATFORM_PROJECT_ENTROPY']) && empty($drupal_hash_salt)) {
   $drupal_hash_salt = $_ENV['PLATFORM_PROJECT_ENTROPY'];
